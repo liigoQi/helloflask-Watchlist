@@ -1,3 +1,5 @@
+from contextlib import redirect_stderr
+from pydoc import cli
 from flask import Flask, url_for, render_template
 # 注意 用户输入的数据会包含恶意代码，所以不能直接作为响应返回，需要使用 MarkupSafe（Flask 的依赖之一）提供的 escape() 函数对 name 变量进行转义处理，比如把 < 转换成 &lt;。这样在返回响应时浏览器就不会把它们当做代码执行。
 from markupsafe import escape 
@@ -6,8 +8,22 @@ from flask import request, redirect, flash
 import os 
 import sys 
 import click 
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, current_user
+# 用户的登录和登出状态被current_user记录
+from flask_login import login_required, logout_user
 
 app = Flask(__name__)
+
+login_manager = LoginManager(app)
+# 根据视图保护，如果未登录的用户访问对应的 URL，Flask-Login 会把用户重定向到登录页面，并显示一个错误提示。
+login_manager.login_view = 'login'
+login_manager.login_message = 'Permission deny. Please login.'
+
+@login_manager.user_loader 
+def load_user(user_id):
+    user = User.query.get(int(user_id))
+    return user 
 
 # flash() 函数在内部会把消息存储到 Flask 提供的 session 对象里。session 用来在请求间存储数据，它会把数据签名后存储到浏览器的 Cookie 中，所以我们需要设置签名所需的密钥
 app.config['SECRET_KEY'] = 'dev'
@@ -27,9 +43,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # 在扩展类实例化前加载配置
 db = SQLAlchemy(app)
 
-class User(db.Model):
+# UserMixin: 继承这个类会让 User 类拥有几个用于判断认证状态的属性和方法，其中最常用的是 is_authenticated 属性：如果当前用户已经登录，那么 current_user.is_authenticated 会返回 True， 否则返回 False
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
+    username = db.Column(db.String(20))
+    password_hash = db.Column(db.String(128))
+
+    def set_passward(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def validate_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,6 +77,26 @@ def initdb(drop):
         db.drop_all()
     db.create_all()
     click.echo('Initialized database.')
+
+# 创建管理员账户的命令
+# flask admin
+@app.cli.command()
+@click.option('--username', prompt=True, help='The username used to login.')
+@click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True, help='The password used to login.')
+def admin(username, password):
+    db.create_all()
+    user = User.query.first()
+    if user is not None:
+        click.echo('Updating user...')
+        user.username = username 
+        user.set_password(password)
+    else:
+        click.echo('Creating user...')
+        user = User(username=username, name='Admin')
+        user.set_passward(password)
+        db.session.add(user)
+    db.session.commit()
+    click.echo('Done.')
 
 @app.cli.command()
 def forge():
@@ -93,6 +138,10 @@ def index():
     # Flask 会在请求触发后把请求信息放到 request 对象里
     # 它包含请求相关的所有信息，比如请求的路径（request.path）、请求的方法（request.method）、表单数据（request.form）、查询字符串（request.args）等等。
     if request.method == 'POST':
+        # 如果当前用户未认证
+        if not current_user.is_authenticated:
+            flash('Permission deny.')
+            return redirect(url_for('index'))
         title = request.form.get('title')
         year = request.form.get('year')
         if not title or not year or len(year) > 4 or len(title) > 60:
@@ -128,6 +177,7 @@ def page_not_found(e): # 接受异常对象作为参数
     # 普通的视图函数之所以不用写出状态码，是因为默认会使用 200 状态码，表示成功。
 
 @app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
+@login_required
 def edit(movie_id):
     # get_or_404(): 它会返回对应主键的记录，如果没有找到，则返回 404 错误响应。
     movie = Movie.query.get_or_404(movie_id)
@@ -145,9 +195,44 @@ def edit(movie_id):
     return render_template('edit.html', movie=movie)
 
 @app.route('/movie/delete/<int:movie_id>', methods=['POST'])
+@login_required
 def delete(movie_id):
     movie = Movie.query.get_or_404(movie_id)
     db.session.delete(movie)
     db.session.commit()
     flash('Item delete.')
     return redirect(url_for('index'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if not username or not password:
+            flash('Invalid input.')
+            return redirect(url_for('login'))
+        user = User.query.first()
+        if username == user.username and user.validate_password(password):
+            # 登入用户
+            login_user(user)
+            flash('Login success.')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password.')
+            return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Good bye.')
+    return redirect(url_for('index'))
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        pass 
+    return render_template('settings.html')
