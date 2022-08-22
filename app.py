@@ -1,3 +1,4 @@
+from importlib.util import resolve_name
 from operator import is_
 from flask import Flask, url_for, render_template
 # 注意 用户输入的数据会包含恶意代码，所以不能直接作为响应返回，需要使用 MarkupSafe（Flask 的依赖之一）提供的 escape() 函数对 name 变量进行转义处理，比如把 < 转换成 &lt;。这样在返回响应时浏览器就不会把它们当做代码执行。
@@ -75,13 +76,19 @@ def forge():
     db.session.commit()
     click.echo('Done.')
 
+
+@app.context_processor
+def inject_user():
+    user = User.query.first()
+    return dict(user=user) # 需要返回字典
+    # 这个函数返回的变量（以字典键值对的形式）将会统一注入到每一个模板的上下文环境中，因此可以直接在模板中使用。
+
 # register a view function
 @app.route('/home')
 @app.route('/')
 def index():
-    user = User.query.first()
     movies = Movie.query.all()
-    return render_template('index.html', user=user, movies=movies)
+    return render_template('index.html', movies=movies)
 
 @app.route('/usr/<name>')
 def user_page(name):
@@ -96,3 +103,8 @@ def test_url_for():
     # /test?num=2&test=1
     print(url_for('test_url_for', num=2, test=1))
     return 'Test page'
+
+@app.errorhandler(404)
+def page_not_found(e): # 接受异常对象作为参数
+    return render_template('404.html'), 404 # 返回模板和状态码
+    # 普通的视图函数之所以不用写出状态码，是因为默认会使用 200 状态码，表示成功。
