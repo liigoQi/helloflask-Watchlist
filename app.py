@@ -21,7 +21,7 @@ app = Flask(__name__)
 # register a view function
 @app.route('/home')
 @app.route('/')
-def hello():
+def index():
     return render_template('index.html', name=name, movies=movies)
 
 @app.route('/usr/<name>')
