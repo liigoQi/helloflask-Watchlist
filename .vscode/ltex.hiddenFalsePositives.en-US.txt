@@ -1,0 +1,2 @@
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q{{ name }}'s Watchlist </head> <body> <h2>{{ name }}'s Watchlist</h2> {# 使用length过滤器获取movies变量的长度 #} <p>{{ movies|length }} Titles</p> <ul> {% for %} </ul> </body> </html>\\E$"}
+{"rule":"COMMA_PARENTHESIS_WHITESPACE","sentence":"^\\Q{{ name }}'s Watchlist </head> <body> <h2>{{ name }}'s Watchlist</h2> {# 使用length过滤器获取movies变量的长度 #} <p>{{ movies|length }} Titles</p> <ul> {% for %} </ul> </body> </html>\\E$"}

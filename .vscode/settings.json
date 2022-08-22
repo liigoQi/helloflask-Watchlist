@@ -1,3 +1,5 @@
 {
-    "python.venvPath": "/Users/qiyifan/.local/share/virtualenvs/introFlask-m8i-PhUM"
+    "python.venvPath": "/Users/qiyifan/.local/share/virtualenvs/introFlask-m8i-PhUM",
+    "latex-workshop.message.error.show"  : false,
+    "latex-workshop.message.warning.show": false
 }
