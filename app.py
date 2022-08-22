@@ -30,7 +30,7 @@ def user_page(name):
 
 @app.route('/test')
 def test_url_for():
-    # url_for: 生成视图函数对应的 URL
+    # url_for: 传入端点值（视图函数的名称）和参数，它会返回对应的 URL
     print(url_for('hello'))
     print(url_for('user_page', name='liigo'))
     # 下面这个调用传入了多余的关键字参数，它们会被作为查询字符串附加到 URL 后面
