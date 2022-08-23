@@ -50,7 +50,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20))
     password_hash = db.Column(db.String(128))
 
-    def set_passward(self, password):
+    def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
     def validate_password(self, password):
@@ -93,7 +93,7 @@ def admin(username, password):
     else:
         click.echo('Creating user...')
         user = User(username=username, name='Admin')
-        user.set_passward(password)
+        user.set_password(password)
         db.session.add(user)
     db.session.commit()
     click.echo('Done.')
@@ -200,7 +200,7 @@ def delete(movie_id):
     movie = Movie.query.get_or_404(movie_id)
     db.session.delete(movie)
     db.session.commit()
-    flash('Item delete.')
+    flash('Item deleted.')
     return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -227,12 +227,19 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Good bye.')
+    flash('Goodbye.')
     return redirect(url_for('index'))
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     if request.method == 'POST':
-        pass 
+        name = request.form['name']
+        if not name or len(name) > 20:
+            flash('Invalid input.')
+            return redirect(url_for('settings'))
+        current_user.name = name 
+        db.session.commit()
+        flash('Settings updated.')
+        return redirect(url_for('index'))
     return render_template('settings.html')
