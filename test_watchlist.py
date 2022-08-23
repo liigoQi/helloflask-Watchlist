@@ -2,8 +2,9 @@ from pickletools import floatnl
 import unittest
 from urllib import response 
 
-from app import app, db, Movie, User 
-from app import forge, initdb
+from watchlist import app, db
+from watchlist.models import Movie, User 
+from watchlist.commands import forge, initdb
 
 class WatchlistTestCase(unittest.TestCase):
     def setUp(self):
@@ -37,7 +38,7 @@ class WatchlistTestCase(unittest.TestCase):
         self.assertTrue(app.config['TESTING'])
 
     def test_404_page(self):
-        response = self.client.get('/nothing')
+        response = self.client.get('/page_not_found')
         # as_text=True: 获取 Unicode 格式的响应主体
         data = response.get_data(as_text=True)
         self.assertIn('Page Not Found - 404', data)
