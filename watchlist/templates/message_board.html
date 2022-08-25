@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if current_user.is_authenticated %}
+<form method="post">
+    Name <br> <input class="name-box" type="text" name="name" autocomplete="off" required> 
+    <br>
+    Message <br> <input class="content-box" type="text" name="content" autocomplete="off" required placeholder="Enter your message here!"> 
+    <br>
+    <input class="btn" type="submit" name="submit" value="Submit">
+</form>
+{% endif %}
+<p>{{ messages|length }} messages</p>
+<ul class="message-list">
+    {% for message in messages %}
+    <li class="message-li">
+        <div class="message-block">
+            <strong class="message-name">{{ message.name }}</strong> <span class="message-id">#{{ message.id }}</span>
+            <span class="float-right">
+                {{ message.created_time }}
+            </span>
+            <p>
+                {{ message.content }}
+            </p>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

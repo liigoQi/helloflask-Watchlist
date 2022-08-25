@@ -22,17 +22,22 @@
         <nav>
             <ul>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('message_board') }}">Message Board</a></li>
                 {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('settings') }}">Settings</a></li>
-                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                <span class="float-right">
+                    <li><a href="{{ url_for('settings') }}">Settings</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </span>
                 {% else %}
-                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <span class="float-right">
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                </span>
                 {% endif %}
             </ul>
         </nav>
         {% block content %}{% endblock %}
         <footer>
-            <small>&Copy; 2022 <a href="http://helloflask.com/book/3">HelloFlask</a></small>
+            <small>&copy; 2022 <a href="http://helloflask.com/book/3">HelloFlask</a></small>
         </footer>
     </body>
 </html>

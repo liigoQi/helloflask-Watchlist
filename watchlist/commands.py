@@ -1,5 +1,7 @@
+from dataclasses import dataclass
 from watchlist import app, db 
-from watchlist.models import User, Movie
+from watchlist.models import User, Movie, Message 
+from datetime import datetime
 import click 
 
 @app.cli.command() # 注册为命令，可以传入 name 参数来自定义命令
@@ -47,10 +49,16 @@ def forge():
         {'title': 'WALL-E', 'year': '2008'},
         {'title': 'The Pork of Music', 'year': '2012'},
     ]
+    messages = [
+        {'name': 'Xiaoming', 'content': 'Ok this is a good website!', 'created_time': datetime(2015, 4, 19, 12, 20)},
+    ]
     user = User(name=name)
     db.session.add(user)
     for m in movies:
         movie = Movie(title=m['title'], year=m['year'])
         db.session.add(movie)
+    for m in messages:
+        message = Message(name=m['name'], content=m['content'], created_time=m['created_time'])
+        db.session.add(message)
     db.session.commit()
     click.echo('Done.')

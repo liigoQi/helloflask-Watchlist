@@ -1,5 +1,5 @@
 from watchlist import app, db 
-from watchlist.models import User, Movie 
+from watchlist.models import User, Movie, Message 
 from flask import render_template, request, url_for, redirect, flash 
 from flask_login import login_user, login_required, logout_user, current_user
 from markupsafe import escape 
@@ -111,3 +111,23 @@ def settings():
         flash('Settings updated.')
         return redirect(url_for('index'))
     return render_template('settings.html')
+
+@app.route('/message_board', methods=['GET', 'POST'])
+def message_board():
+    if request.method == 'POST':
+        if not current_user.is_authenticated:
+            flash('Permission deny.')
+            return redirect(url_for('message_board'))
+        name = request.form.get('name')
+        content = request.form.get('content')
+        if not name or not content:
+            flash('Invalid input.')
+            return redirect(url_for('message_board'))
+        message = Message(name=name, content=content)
+        db.session.add(message)
+        db.session.commit()
+        flash('Message created.')
+        return redirect(url_for('message_board'))
+    
+    messages = Message.query.order_by(Message.created_time.desc()).all()
+    return render_template('message_board.html', messages=messages)

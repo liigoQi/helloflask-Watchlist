@@ -1,2 +1,2 @@
-FLASK_ENV=development
+DEBUG_MODE=on 
 FLASK_APP=watchlist

@@ -18,6 +18,7 @@ else:
     prefix = 'sqlite:////'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(os.path.dirname(app.root_path), os.getenv('DATABASE_FILE', 'data.db'))
+
 # 关闭对模型修改的监控
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 

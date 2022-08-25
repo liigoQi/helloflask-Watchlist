@@ -222,6 +222,32 @@ class WatchlistTestCase(unittest.TestCase):
         self.assertNotIn('Settings updated.', data)
         self.assertIn('Invalid input.', data)
 
+    def test_message_board(self):
+        response = self.client.get('/message_board')
+        data = response.get_data(as_text=True)
+        self.assertIn('messages', data)
+        self.assertNotIn('Name', data)
+
+    def test_message_board_mogin(self):
+        self.login()
+        response = self.client.get('/message_board')
+        data = response.get_data(as_text=True)
+        self.assertIn('messages', data)
+        self.assertIn('Name', data)
+
+    def test_add_message(self):
+        self.login()
+        response = self.client.post('/message_board', data=dict(
+            name='Liigo',
+            content='Unit test content'
+        ), follow_redirects=True)
+        data = response.get_data(as_text=True)
+        self.assertIn('messages', data)
+        self.assertIn('Name', data)
+        self.assertIn('Message created.', data)
+        self.assertIn('Liigo', data)
+        self.assertIn('Unit test content', data)
+
     #### 测试自定义命令行命令 ####
 
     # 测试虚拟数据
@@ -255,6 +281,7 @@ class WatchlistTestCase(unittest.TestCase):
         self.assertEqual(User.query.count(), 1)
         self.assertEqual(User.query.first().username, 'peter')
         self.assertTrue(User.query.first().validate_password('456'))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -117,3 +117,44 @@ input[name=year] {
 .inline-form {
     display: inline;
 }
+
+.message-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.message-li {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.message-block {
+    background-color: white;
+    border: 1px solid #ddd;
+    margin: 0;
+    padding: 0;
+}
+
+.content-box {
+    width: 580px;
+    height: 100px;
+}
+
+.content-box::placeholder {
+    vertical-align: top;
+    top: -0.1rem;
+}
+
+.name-box {
+    width: 580px;
+}
+
+.message-name {
+    color: #F5C518;
+}
+
+.message-id {
+    color: #888;
+}
